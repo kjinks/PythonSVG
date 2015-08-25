@@ -29,7 +29,7 @@ https://www.youtube.com/watch?v=JSZC2vfa47I
 Published on Jul 27, 2012
 This tutorial presents some very useful python codes based on lists.
 """
-def multi(a, b)
+def multi(a, b):
     d = []
     i = 0
     
