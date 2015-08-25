@@ -785,7 +785,7 @@ class SVGWrap:
             
             self.pathData += " " + str(radius) + " " + str(rotate) + " " + arcB + " " + sweepB + " " + str(p) + " "
 
-    def loadGroup(self, parent, filename, groupName):
+    def loadGroup(self, filename, groupName):
         try:
             file = open(filename, 'r')
         except:
@@ -796,6 +796,8 @@ class SVGWrap:
         file.close()
             
         svgDoc = ET.fromstring(content)
+        
+        foundGroup = None
         
         for group in svgDoc.findall(".//*"):
              
@@ -810,12 +812,19 @@ class SVGWrap:
             if id == groupName:
                 #remove any transforms on the group
                 group.set('transform', "")
-                
-                parent.append(group)
-            else:
-                print(group)
+                foundGroup = group
+        
+        return foundGroup
             
+    def appendGroup(self, parent, group, attr = {}):
+        
+        tempGroup = group
+        
+        for i in attr:
+            tempGroup.set(i, str(attr[i]))
             
+        parent.append(tempGroup)
+        
 MANDALA_CANVAS_SIZE = 1000
 class Mandala:
     def __init__(self, seed = 888):
@@ -1230,7 +1239,9 @@ def LoadGroupTest():
     svgOut = SVGWrap({ "width"  : GROUP_WIDTH,
                        "height" : GROUP_WIDTH 
                      })
-    svgOut.loadGroup(svgOut.root, GROUP_FILE, GROUP_NAME)
+    g = svgOut.loadGroup(GROUP_FILE, GROUP_NAME)
+    
+    svgOut.appendGroup(svgOut.root, g)
     
     svgOut.tree.write(TEST_FILE)
     
