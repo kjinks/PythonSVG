@@ -785,12 +785,17 @@ class SVGWrap:
             
             self.pathData += " " + str(radius) + " " + str(rotate) + " " + arcB + " " + sweepB + " " + str(p) + " "
 
+    #loadGroup takes an svg xml file (filename) and extracts the group
+    #with the id matching id, groupName and returns the group
+    #including the subelements of that group
+    #If the group is not found or the file is not found this will
+    #return None
     def loadGroup(self, filename, groupName):
         try:
             file = open(filename, 'r')
         except:
             print("Unable to open file " + filename)
-            return
+            return None
         
         content = file.read()
         file.close()
@@ -815,7 +820,9 @@ class SVGWrap:
                 foundGroup = group
         
         return foundGroup
-            
+    
+    #appendGroup takes a group applies attributes (attr) to it and
+    #appends it to the given parent element
     def appendGroup(self, parent, group, attr = {}):
         
         tempGroup = group
