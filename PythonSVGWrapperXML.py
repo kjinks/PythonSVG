@@ -61,6 +61,8 @@ pushed and popped.
 
 An svg transformation matrix string can be produced
 by calling the svgOut method.
+
+https://en.wikipedia.org/wiki/File:2D_affine_transformation_matrix.svg
 """
 class transform2D:    
     def __init__(self):
@@ -818,14 +820,15 @@ class SVGWrap:
                 #remove any transforms on the group
                 group.set('transform', "")
                 foundGroup = group
-        
-        return foundGroup
+
+        groupTree = ET.fromstring(ET.tostring(foundGroup)) 
+        return groupTree
     
-    #appendGroup takes a group applies attributes (attr) to it and
+    #appendGroup takes a group tree applies attributes (attr) to it and
     #appends it to the given parent element
-    def appendGroup(self, parent, group, attr = {}):
+    def appendGroup(self, parent, groupTree, attr = {}):
         
-        tempGroup = group
+        tempGroup = ET.fromstring(ET.tostring(groupTree))
         
         for i in attr:
             tempGroup.set(i, str(attr[i]))
@@ -1268,6 +1271,7 @@ def Transform2DTest():
                               "width" : GROUP_WIDTH,
                               "height" : GROUP_WIDTH,    
                                "fill" : "red"})
+                               
     g = svgOut.loadGroup(GROUP_FILE, GROUP_NAME)
     
     trans = transform2D()
@@ -1277,10 +1281,12 @@ def Transform2DTest():
     rot = (2.0 * math.pi) / ROTATIONS
     
     for r in range(ROTATIONS):
-    
+        trans.scale(0.5, 0.5)
         svgOut.appendGroup(svgOut.root, g, {"transform" : trans.svgOut()})
+        trans.scale(2.0, 2.0)
+        trans.translate((GROUP_WIDTH / 2.0), (GROUP_WIDTH / 2.0))
         trans.rotate(rot)    
-            
+        trans.translate(-(GROUP_WIDTH / 2.0), -(GROUP_WIDTH / 2.0))    
     
     svgOut.tree.write(TEST_FILE)
     
