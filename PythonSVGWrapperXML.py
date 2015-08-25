@@ -29,7 +29,7 @@ https://www.youtube.com/watch?v=JSZC2vfa47I
 Published on Jul 27, 2012
 This tutorial presents some very useful python codes based on lists.
 """
-def multi(a, b):
+def multi(x, y):
     d = []
     i = 0
     
@@ -72,30 +72,30 @@ class transform2D:
         self.stack  = []
     
     #push the current matrix onto the stack
-    def push():
+    def push(self):
         self.stack.append(self.matrix)
     
     #pop the last matrix from the stack 
-    def pop():
+    def pop(self):
         try:
             self.matrix = self.stack.pop()
         except:
             print("stack underflow in matrix transform")
             
     #get the svg matrix transform string
-    def svgOut():
-        a = str(self.matrix[1, 1])
-        b = str(self.matrix[1, 2])
-        c = str(self.matrix[1, 3])
-        d = str(self.matrix[2, 1])
-        e = str(self.matrix[2, 2])
-        f = str(self.matrix[2, 3])
+    def svgOut(self):
+        a = str(self.matrix[0][0])
+        c = str(self.matrix[0][1])
+        e = str(self.matrix[0][2])
+        b = str(self.matrix[1][0])
+        d = str(self.matrix[1][1])
+        f = str(self.matrix[1][2])
         
-        out = "matrix(" + a + "," + b + "," + c + "," + "d" + "," + "e" + "," + "f" + ")"
+        out = "matrix(" + a + "," + b + "," + c + "," + d + "," + e + "," + f + ")"
         
         return out
         
-    def translate(x, y):
+    def translate(self, x, y):
         matrix = [
                   [1, 0, x],
                   [0, 1, y],
@@ -105,7 +105,7 @@ class transform2D:
         self.matrix = multi(self.matrix, matrix)
         return self.matrix
 
-    def scale(w, h):
+    def scale(self, w, h):
         matrix = [
                   [w, 0, 0],
                   [0, h, 0],
@@ -115,7 +115,7 @@ class transform2D:
         self.matrix = multi(self.matrix, matrix)
         return self.matrix
     
-    def rotate(theta):
+    def rotate(self, theta):
         s = math.sin(theta)
         c = math.cos(theta)
         
@@ -128,7 +128,7 @@ class transform2D:
         self.matrix = multi(self.matrix, matrix)
         return self.matrix
         
-    def shearX(a):
+    def shearX(self, a):
         matrix = [
                   [1, a, 0],
                   [0, 1, 0],
@@ -138,7 +138,7 @@ class transform2D:
         self.matrix = multi(self.matrix, matrix)
         return self.matrix
     
-    def shearY(a):
+    def shearY(self, a):
         matrix = [
                   [1, 0, 0],
                   [a, 1, 0],
@@ -148,7 +148,7 @@ class transform2D:
         self.matrix = multi(self.matrix, matrix)
         return self.matrix
     
-    def reflectO():
+    def reflectO(self):
         matrix = [
                   [-1,  0, 0],
                   [ 0, -1, 0],
@@ -158,7 +158,7 @@ class transform2D:
         self.matrix = multi(self.matrix, matrix)
         return self.matrix
         
-    def reflectX():
+    def reflectX(self):
         matrix = [
                   [1,  0, 0],
                   [0, -1, 0],
@@ -168,7 +168,7 @@ class transform2D:
         self.matrix = multi(self.matrix, matrix)
         return self.matrix
     
-    def reflectY():
+    def reflectY(self):
         matrix = [
                   [-1, 0, 0],
                   [ 0, 1, 0],
@@ -951,8 +951,8 @@ TEST_DNA             = False
 TEST_MANDALA_CIRCLES = False
 TEST_COLOUR          = False
 TEST_PALETTE         = False
-TEST_LOAD_GROUP      = True
-
+TEST_LOAD_GROUP      = False
+TEST_TRANSFORM2D     = True
 
 def openTestFile():
     check_output("start " + TEST_FILE, shell=True)
@@ -1256,6 +1256,38 @@ def LoadGroupTest():
     
     return svgOut
 
+def Transform2DTest():
+    ROTATIONS = 16
+    
+    svgOut = SVGWrap({ "width"  : GROUP_WIDTH,
+                       "height" : GROUP_WIDTH 
+                     })
+                     
+    svgOut.rect(svgOut.root, {"x" : 0.0,
+                              "y" : 0.0,
+                              "width" : GROUP_WIDTH,
+                              "height" : GROUP_WIDTH,    
+                               "fill" : "red"})
+    g = svgOut.loadGroup(GROUP_FILE, GROUP_NAME)
+    
+    trans = transform2D()
+    
+    trans.push()
+    
+    rot = (2.0 * math.pi) / ROTATIONS
+    
+    for r in range(ROTATIONS):
+    
+        svgOut.appendGroup(svgOut.root, g, {"transform" : trans.svgOut()})
+        trans.rotate(rot)    
+            
+    
+    svgOut.tree.write(TEST_FILE)
+    
+    openTestFile()
+    
+    return svgOut
+    
 if TEST_CIRCLE:
     SVGWrapTesting.testCircle()
 elif TEST_PATH:
@@ -1270,3 +1302,5 @@ elif TEST_PALETTE:
     PaletteTest()
 elif TEST_LOAD_GROUP:
     LoadGroupTest()
+elif TEST_TRANSFORM2D:
+    Transform2DTest()
