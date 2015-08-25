@@ -426,13 +426,7 @@ class SVGWrap:
                                }):
         self.tree = ET.ElementTree()
         self.body(attr)
-    """
-    #DEPRECATED
-    def header():
-        docType = r'<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">' + '\n'
-        return docType
-    """
-    
+
     """
     def group(parent, attr={})
     
