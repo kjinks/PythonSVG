@@ -407,7 +407,7 @@ svg tags are added to the tree by passing the parent node and a dict of attribut
 
 the main body of the svg document, the <svg> tag, is the root of the ElementTree
 """
-class SVGWrap:            
+class SVGWrap:       
     def body(self, attr = {
                            "width" : 100,
                            "height" : 100
@@ -428,7 +428,34 @@ class SVGWrap:
                                }):
         self.tree = ET.ElementTree()
         self.body(attr)
-
+        self.defs = ET.SubElement(self.root, 'defs')
+    """
+    ________________________________
+    SVG REFERENCE BUILDER
+    """
+    """
+    def addToDefs(self, reference)
+    
+    this method adds an svg reference to the defs section of the svg
+    document. SVG references are used to reuse objects, and create
+    patterns and gradients.
+    
+    parameter:
+        reference - reference is an instance of one of the below classes
+        inheriting from the class Reference
+    """
+    def addToDefs(self, reference):
+        #clone the instance
+        tempRef = ET.fromstring(ET.tostring(reference.tree))
+        
+        self.defs.append(tempRef)
+    
+    
+            
+    """
+    ________________________________
+    GROUP
+    """
     """
     def group(parent, attr={})
     
@@ -449,7 +476,21 @@ class SVGWrap:
         
         return g
    
+    """
+    ________________________________
+    USE
+    """
+    def use(self, parent, reference, attr = {}):
+        assert (isinstance(reference, Reference)), "Not an instance of Reference"
         
+        u = ET.SubElement(parent, 'use')
+        
+        u.set('href', reference.url)
+        
+        for i in attr:
+            u.set(i, str(attr[i]))
+            
+        return u
     """
     ________________________________
     BASIC SHAPES
@@ -786,7 +827,11 @@ class SVGWrap:
             p  = Point(x, y)
             
             self.pathData += " " + str(radius) + " " + str(rotate) + " " + arcB + " " + sweepB + " " + str(p) + " "
-
+    
+    """
+    ________________________________
+    FILE OPERATIONS
+    """
     #loadGroup takes an svg xml file (filename) and extracts the group
     #with the id matching id, groupName and returns the group
     #including the subelements of that group
@@ -824,6 +869,19 @@ class SVGWrap:
         groupTree = ET.fromstring(ET.tostring(foundGroup)) 
         return groupTree
     
+    def writeDoc(self, filename):
+        try:
+            self.tree.write(filename)
+        except:
+            print("Unable to write file: " + filename)
+            
+    def display(self):
+        TEMP_FILE = r'temp.html'
+        
+        self.writeDoc(TEMP_FILE)
+        
+        check_output("start " + TEMP_FILE, shell=True)
+    
     #appendGroup takes a group tree applies attributes (attr) to it and
     #appends it to the given parent element
     def appendGroup(self, parent, groupTree, attr = {}):
@@ -834,7 +892,94 @@ class SVGWrap:
             tempGroup.set(i, str(attr[i]))
             
         parent.append(tempGroup)
+
+"""
+class Reference
+
+all tags in the defs group of an svg document are references
+this is a base class to define those references
+
+the id is used as the url reference and should be unique 
+"""
+class Reference:
+    referenceList = []
+    
+    def __init__(self, id, tag):
+        assert (id not in Reference.referenceList), "Reference already defined :" + id
         
+        Reference.referenceList.append(id)
+        
+        self.id = id
+        self.root = ET.Element(tag)
+        
+        self.tree = ET.ElementTree()
+        self.tree._setroot(self.root)
+        
+        self.id = id
+        
+    def url(self):
+        return "url(" + str(self.id) + ")"
+        
+class GroupRef(Reference):
+    def __init__(self, id, groupTree):
+        Reference.__init__(self, id, 'g')
+        
+        self.root.set('id', id)
+        
+        tempGroup = ET.fromstring(ET.tostring(groupTree))
+        
+        self.root.append(groupTree)
+
+class LinearGradient(Reference):
+    def __init__(self, id, attr = {
+                                   "x1" : 0,
+                                   "y1" : 0,
+                                   "x2" : 0,
+                                   "y2" : 0                                           
+                                  }):
+        Reference.__init__(self, id, 'linearGradient')
+                    
+        self.root.set('id', id)
+        
+        for i in attr:
+            self.root.set(i, attr[i])
+    
+    def stop(self, attr = {
+                           "offset"       : "0%",
+                           "stop-color"   : "black",
+                           "stop-opacity" : 1.0
+                          }):
+        
+        stop = ET.SubElement(self.root, 'stop')
+        
+        for i in attr:
+            stop.set(i, attr[i])
+    
+class RadialGradient(Reference):
+    def __init__(self, id, attr = {
+                                   "cx" : 0,
+                                   "cy" : 0,
+                                   "r"  : 0,
+                                   "fx" : 0,
+                                   "fy" : 0
+                                  }):
+        Reference.__init__(self, id, 'radialGradient')
+                    
+        self.root.set('id', id)
+        
+        for i in attr:
+            self.root.set(i, attr[i])
+    
+    def stop(self, attr = {
+                           "offset"       : "0%",
+                           "stop-color"   : "black",
+                           "stop-opacity" : 1.0
+                          }):
+        
+        stop = ET.SubElement(self.root, 'stop')
+        
+        for i in attr:
+            stop.set(i, attr[i])
 MANDALA_CANVAS_SIZE = 1000
 class Mandala:
     def __init__(self, seed = 888):
@@ -1242,8 +1387,8 @@ def PaletteTest():
     return svgOut
 
 GROUP_WIDTH = 1000
-GROUP_FILE = "./Art/oakleaves.svg"
-GROUP_NAME = "oakLeaf_001"
+GROUP_FILE = "./Art/grid.svg"
+GROUP_NAME = "grid"
 
 def LoadGroupTest():
     svgOut = SVGWrap({ "width"  : GROUP_WIDTH,
@@ -1260,7 +1405,7 @@ def LoadGroupTest():
     return svgOut
 
 def Transform2DTest():
-    ROTATIONS = 16
+    ROTATIONS = 18
     
     svgOut = SVGWrap({ "width"  : GROUP_WIDTH,
                        "height" : GROUP_WIDTH 
@@ -1274,6 +1419,8 @@ def Transform2DTest():
                                
     g = svgOut.loadGroup(GROUP_FILE, GROUP_NAME)
     
+    grid = GroupRef('grid', g)
+    
     trans = transform2D()
     
     trans.push()
@@ -1281,17 +1428,15 @@ def Transform2DTest():
     rot = (2.0 * math.pi) / ROTATIONS
     
     for r in range(ROTATIONS):
-        trans.scale(0.5, 0.5)
-        svgOut.appendGroup(svgOut.root, g, {"transform" : trans.svgOut()})
-        trans.scale(2.0, 2.0)
+        #trans.scale(0.5, 0.5)
+        svgOut.use(svgOut.root, grid, {"transform" : trans.svgOut()})
+        #trans.scale(2.0, 2.0)
         trans.translate((GROUP_WIDTH / 2.0), (GROUP_WIDTH / 2.0))
         trans.rotate(rot)    
         trans.translate(-(GROUP_WIDTH / 2.0), -(GROUP_WIDTH / 2.0))    
     
-    svgOut.tree.write(TEST_FILE)
-    
-    openTestFile()
-    
+    svgOut.display()
+    print(ET.tostring(svgOut.tree))
     return svgOut
     
 if TEST_CIRCLE:
