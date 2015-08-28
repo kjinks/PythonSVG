@@ -416,6 +416,9 @@ class SVGWrap:
         self.root = ET.Element('svg')
         self.tree._setroot(self.root)
         
+        self.root.set("xmlns", r'http://www.w3.org/2000/svg')
+        self.root.set("xmlns:xlink", r'http://www.w3.org/1999/xlink')
+        
         for i in attr:
             self.root.set(i, str(attr[i]))
         
@@ -485,7 +488,7 @@ class SVGWrap:
         
         u = ET.SubElement(parent, 'use')
         
-        u.set('href', reference.url)
+        u.set('xlink:href', reference.url())
         
         for i in attr:
             u.set(i, str(attr[i]))
@@ -918,7 +921,7 @@ class Reference:
         self.id = id
         
     def url(self):
-        return "url(" + str(self.id) + ")"
+        return "#" + str(self.id)
         
 class GroupRef(Reference):
     def __init__(self, id, groupTree):
@@ -1429,8 +1432,12 @@ def Transform2DTest():
     rot = (2.0 * math.pi) / ROTATIONS
     
     for r in range(ROTATIONS):
-        #trans.scale(0.5, 0.5)
-        svgOut.use(svgOut.root, grid, {"transform" : trans.svgOut()})
+        #trans.scale(0.5, 0.5) #
+        svgOut.use(svgOut.root, grid, {
+                                       "transform" : trans.svgOut(),
+                                       "x" : 0.0,
+                                       "y" : 0.0
+                                      })
         #trans.scale(2.0, 2.0)
         trans.translate((GROUP_WIDTH / 2.0), (GROUP_WIDTH / 2.0))
         trans.rotate(rot)    
