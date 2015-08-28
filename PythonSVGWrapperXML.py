@@ -926,9 +926,8 @@ class GroupRef(Reference):
         
         self.root.set('id', id)
         
-        tempGroup = ET.fromstring(ET.tostring(groupTree))
-        
-        self.root.append(groupTree)
+        self.tree = ET.fromstring(ET.tostring(groupTree))
+
 
 class LinearGradient(Reference):
     def __init__(self, id, attr = {
@@ -1421,6 +1420,8 @@ def Transform2DTest():
     
     grid = GroupRef('grid', g)
     
+    svgOut.addToDefs(grid)
+    
     trans = transform2D()
     
     trans.push()
@@ -1436,7 +1437,7 @@ def Transform2DTest():
         trans.translate(-(GROUP_WIDTH / 2.0), -(GROUP_WIDTH / 2.0))    
     
     svgOut.display()
-    print(ET.tostring(svgOut.tree))
+    print(ET.tostring(svgOut.root))
     return svgOut
     
 if TEST_CIRCLE:
