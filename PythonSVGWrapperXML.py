@@ -931,7 +931,6 @@ class GroupRef(Reference):
         
         self.tree = ET.fromstring(ET.tostring(groupTree))
 
-
 class LinearGradient(Reference):
     def __init__(self, id, attr = {
                                    "x1" : 0,
@@ -1089,7 +1088,50 @@ class Mandala:
                                                        "opacity" : 0.5
                                                       })
 
+    def lotus(self, svgDoc, parent, radius, numLobes):
+        MIN_DISTANCE = 1
+        
+        mainGroup = svgDoc.group(parent = parent, attr = {"id" : "lotus"})
+        
+        ringRadius = 0.0
+        
+        for j in range(3):
+            circum = 2.0 * math.pi * (radius + ringRadius)
             
+            numSteps = int(circum / MIN_DISTANCE)
+            
+            step = (2.0 * math.pi) / numSteps
+            
+            path = SVGWrap.Path()
+            
+            amplitude = (circum / numLobes) / 2.0
+            
+            origin = Point(MANDALA_CANVAS_SIZE / 2.0, MANDALA_CANVAS_SIZE / 2.0)
+            
+            for i in range(numSteps):
+                phase = 0.0 if (j % 2) == 0 else math.pi
+                deltaRadius = math.sin(i * step * numLobes + phase) * amplitude
+                x = math.sin(i * step) * (radius + deltaRadius + ringRadius) + origin.x
+                y = math.cos(i * step) * (radius + deltaRadius + ringRadius) + origin.y
+                
+                if i == 0:
+                    path.move(x = x, y = y)
+                else:
+                    path.line(isRelative = False, x = x, y = y)
+            
+            path.close()
+    
+            path.tag(mainGroup, {
+                                 "stroke" : "black",
+                                 "stroke-width" : 1.0,
+                                 "fill" : "None"
+                                })
+            path.reset()
+            ringRadius += amplitude * 4.2
+            print(ringRadius)
+            
+
+                
 """
 Testing
 """              
@@ -1102,7 +1144,8 @@ TEST_MANDALA_CIRCLES = False
 TEST_COLOUR          = False
 TEST_PALETTE         = False
 TEST_LOAD_GROUP      = False
-TEST_TRANSFORM2D     = True
+TEST_TRANSFORM2D     = False
+TEST_MANDALA_LOTUS   = True
 
 def openTestFile():
     check_output("start " + TEST_FILE, shell=True)
@@ -1308,6 +1351,21 @@ def MandalaCirclesTest():
     
     return svgOut
 
+def MandalaLotusTest():
+    svgOut = SVGWrap({
+                      "width"  : MANDALA_CANVAS_SIZE,
+                      "height" : MANDALA_CANVAS_SIZE,
+                     })
+    mandala = Mandala()
+    
+    mandala.lotus(svgDoc = svgOut, parent = svgOut.root, radius = 25, numLobes = 12)
+    
+    #print(ET.dump(svgOut.root))
+    
+    svgOut.display()
+    
+    return svgOut
+    
 def ColourTest():
     testCols = [ 
                 [1.0, 0.0, 0.0],
@@ -1463,3 +1521,5 @@ elif TEST_LOAD_GROUP:
     LoadGroupTest()
 elif TEST_TRANSFORM2D:
     Transform2DTest()
+elif TEST_MANDALA_LOTUS:
+    MandalaLotusTest()
