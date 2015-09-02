@@ -186,7 +186,7 @@ class Point:
         self.y = y
         
     def __str__(self):
-        s = str(self.x) + "," + str(self.y)
+        s = "{0:.3f}".format(self.x) + "," + "{0:.3f}".format(self.y)
         return s
      
 class Line:
@@ -1088,23 +1088,23 @@ class Mandala:
                                                        "opacity" : 0.5
                                                       })
 
-    def lotus(self, svgDoc, parent, radius, numLobes):
-        MIN_DISTANCE = 1
-        
+    def lotus(self, svgDoc, parent, radius, numLobes, numRings, maxSize, minDistance):
+
         mainGroup = svgDoc.group(parent = parent, attr = {"id" : "lotus"})
         
-        ringRadius = 0.0
-        
-        for j in range(3):
-            circum = 2.0 * math.pi * (radius + ringRadius)
+        ringRadius = radius
+        circum = 2.0 * math.pi * ringRadius
+        amplitude = (circum / numLobes) / 2.0
+        for j in range(numRings):
+            circum = 2.0 * math.pi * ringRadius
             
-            numSteps = int(circum / MIN_DISTANCE)
+            numSteps = int(circum / minDistance)
             
             step = (2.0 * math.pi) / numSteps
             
             path = SVGWrap.Path()
             
-            amplitude = (circum / numLobes) / 2.0
+            
             
             origin = Point(MANDALA_CANVAS_SIZE / 2.0, MANDALA_CANVAS_SIZE / 2.0)
             
@@ -1123,11 +1123,27 @@ class Mandala:
     
             path.tag(mainGroup, {
                                  "stroke" : "black",
-                                 "stroke-width" : 1.0,
-                                 "fill" : "None"
+                                 "stroke-width" : 0.25,
+                                 "fill" : "none"
+                                 
                                 })
             path.reset()
-            ringRadius += amplitude * 4.2
+            
+            midRadius = amplitude + ringRadius
+            
+            midCirc = math.pi * 2.0 * midRadius
+            
+            fullAmp = midCirc / numLobes
+            
+            nextAmp = (fullAmp - (amplitude / 2.0)) / 4.0
+            
+            ringRadius = midRadius + nextAmp
+            
+            amplitude = nextAmp
+            
+            if ringRadius > maxSize:
+                break
+            
             print(ringRadius)
             
 
@@ -1358,7 +1374,7 @@ def MandalaLotusTest():
                      })
     mandala = Mandala()
     
-    mandala.lotus(svgDoc = svgOut, parent = svgOut.root, radius = 25, numLobes = 12)
+    mandala.lotus(svgDoc = svgOut, parent = svgOut.root, radius = 1, numLobes = 25, numRings = 1000, maxSize = 500, minDistance = 0.5)
     
     #print(ET.dump(svgOut.root))
     
@@ -1445,7 +1461,8 @@ def PaletteTest():
     openTestFile()
     
     return svgOut
-
+    
+#group test parameters
 GROUP_WIDTH = 1000
 GROUP_FILE = "./Art/grid.svg"
 GROUP_NAME = "grid"
