@@ -11,7 +11,7 @@ from subprocess import check_output
 import xml.etree.ElementTree as ET
 import colorsys
 import sys
-
+from enum import Enum
 
 ERROR = "error"
 
@@ -201,6 +201,14 @@ class Line:
         
         self.p2 = newP2
         return self.p2
+    
+    def length(self):
+        xd = p1.x - p2.x
+        yd = p1.y - p2.y
+        
+        length = math.sqrt( math.pow(xd, 2.0) + math.pow(yd, 2.0) )
+        
+        return length
     
     def __str__(self):
         s = str(self.p1) + " " + str(self.p2)
@@ -701,6 +709,9 @@ class SVGWrap:
         
         def reset(self):
             self.pathData = ""
+            
+        def set(self, newPathData):
+            self.pathData = newPathData
         
         """
         methods below for adding path data as represent in the SVG specification
@@ -981,11 +992,121 @@ class RadialGradient(Reference):
         
         for i in attr:
             stop.set(i, attr[i])
+
+"""
+FOLIAGE
+#reference Sept 3 2015
+#https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Leaf_morphology_no_title.svg/2166px-Leaf_morphology_no_title.svg.png
+LeafShape = {
+               "acicular"     : "needle shaped",
+               "falcate"      : "hook or sickle shaped",
+               "orbicular"    : "circular",
+               "rhomboid"     : "diamond-shaped",
+               "acuminate"    : "tapering to a long point",
+               "flabelate"    : "fan shaped",
+               "ovate"        : "egg shaped, wide at base",
+               "hastate"      : "triangular with basal lobes",
+               "palmate"      : "like a hand with fingers",
+               "spatulate"    : "spoon shaped",
+               "aristate"     : "with a spine-like tip",
+               "lanceolate"   : "pointed at both ends",
+               "pedate"       : "palmate, divided lateral lobes",
+               "spear-shaped" : "pointed, barbed base",
+               "linear"       : "parallel margins, elongate",
+               "peltate"      : "stem attached centrally",
+               "subulate"     : "tapering point, awl-shaped",
+               "cordate"      : "heart-shaped, stem in cleft",
+               "lobed"        : "deeply indented margins",
+               "deltoid"      : "triangular",
+               "obovate"      : "egg-shaped, narrow at base",
+               "truncate"     : "squared-off apex",
+               "digitate"     : "with finger-like lobes",
+               "obtuse"       : "bluntly tipped",
+               "pinnatisect"  : "deep, opposite lobing",
+               "elliptic"     : "oval-shaped, small or no point",
+               "reniform"     : "kidney-shaped"
+              }
+
+LeafEdge = {
+            "ciliate"        : "with fine hairs",
+            "crenate"        : "rounded teeth",
+            "dentate"        : "with symmetrical teeth",
+            "denticulate"    : "with fine dentition",
+            "doubly-serrate" : "serrate with sub-teeth",
+            "entire"         : "even, smooth throughout",
+            "lobate"         : "indented, but not to midline",
+            "serrate"        : "teeth fprward-pointing",
+            "serrulate"      : "with fine serration",
+            "sinuate"        : "with wave-like indentations",
+            "spiny"          : with sharp stiff points",
+            "undulate"       : "widely wavy"
+           }
+"""
+class LeafShape(Enum):
+    acicular     = 0
+    falcate      = 1
+    orbicular    = 2
+    rhomboid     = 3
+    acuminate    = 4
+    flabelate    = 5
+    ovate        = 6
+    hastate      = 7
+    palmate      = 8
+    spatulate    = 9
+    aristate     = 10
+    lanceolate   = 11
+    pedate       = 12
+    spear_shaped = 13
+    linear       = 14
+    peltate      = 15
+    subulate     = 16
+    cordate      = 17
+    lobed        = 18
+    deltoid      = 19
+    obovate      = 20
+    truncate     = 21
+    digitate     = 22
+    obtuse       = 23
+    pinnatisect  = 24
+    elliptic     = 25
+    reniform     = 26
+    
+class LeafEdge(Enum):
+    ciliate        = 0
+    crenate        = 1
+    dentate        = 2
+    denticulate    = 3
+    doubly_serrate = 4
+    entire         = 5
+    lobate         = 6
+    serrate        = 7
+    serrulate      = 8
+    sinuate        = 9
+    spiny          = 10
+    undulate       = 11
+
+class Leaf:
+    def __init__(self, leafShape = LeafShape.lanceolate, leafEdge  = LeafEdge.entire):
+        assert isinstance(leafShape, LeafShape), "leafShape not instance of LeafShape"
+        assert isinstance(leafEdge, LeafEdge), "leafEdge not instance of LeafEdge"
+        
+        self.leafShape = leafShape
+        self.leafEdge  = leafEdge
+        
+    def make(self, spine = Line()):
+        assert spine.length != 0.0, "leaf spine is 0 length" 
+            
 MANDALA_CANVAS_SIZE = 1000
 class Mandala:
     def __init__(self, seed = 888):
         self.dna = DNA(length = 500, seed = seed)
-    
+        #dna = DNA(), col = Colour(), degree = (math.pi * (2/3)), variation = [0.05, 1.0, 1.0]):
+        colour = Colour()
+        colour.setHLS(self.dna.next(), self.dna.next(), 0.5)
+        degree = (self.dna.next() * math.pi) / 8.0
+        variation = [self.dna.next() * 0.05, self.dna.next() / 2.0, 0.0]
+        self.palette = Palette(dna = self.dna, col = colour, degree = degree, variation = variation)
+
     #svgDoc is an instance of SVGWrap and parent is the parent node in the document
     #attr is the attributes for this SVG group
     def circles(self, colourOn, svgDoc, parent, attr = {
@@ -1088,24 +1209,30 @@ class Mandala:
                                                        "opacity" : 0.5
                                                       })
 
-    def lotus(self, svgDoc, parent, radius, numLobes, numRings, maxSize, minDistance):
+    def lotus(self, svgDoc, parent, radius, numLobes, numRings, maxSize, minDistance, attr = {
+                                                                                              "stroke" : "black",
+                                                                                              "stroke-width" : 0.25,
+                                                                                              "fill" : "none"                                                                                                
+                                                                                             }):
 
         mainGroup = svgDoc.group(parent = parent, attr = {"id" : "lotus"})
+        
+
         
         ringRadius = radius
         circum = 2.0 * math.pi * ringRadius
         amplitude = (circum / numLobes) / 2.0
+        
+        path = SVGWrap.Path()
+        paths = []
+        
         for j in range(numRings):
             circum = 2.0 * math.pi * ringRadius
             
             numSteps = int(circum / minDistance)
-            
+
             step = (2.0 * math.pi) / numSteps
-            
-            path = SVGWrap.Path()
-            
-            
-            
+
             origin = Point(MANDALA_CANVAS_SIZE / 2.0, MANDALA_CANVAS_SIZE / 2.0)
             
             for i in range(numSteps):
@@ -1120,13 +1247,9 @@ class Mandala:
                     path.line(isRelative = False, x = x, y = y)
             
             path.close()
-    
-            path.tag(mainGroup, {
-                                 "stroke" : "black",
-                                 "stroke-width" : 0.25,
-                                 "fill" : "none"
-                                 
-                                })
+            
+            paths.append(str(path))
+            
             path.reset()
             
             midRadius = amplitude + ringRadius
@@ -1143,11 +1266,18 @@ class Mandala:
             
             if ringRadius > maxSize:
                 break
-            
-            print(ringRadius)
-            
 
+            for p in reversed(paths):
+                path.set(p)
                 
+                #colour
+                colour = self.palette.getCol()
+                
+                attr["fill"] = colour.hex()
+                
+                path.tag(mainGroup, attr)
+
+            
 """
 Testing
 """              
@@ -1372,10 +1502,28 @@ def MandalaLotusTest():
                       "width"  : MANDALA_CANVAS_SIZE,
                       "height" : MANDALA_CANVAS_SIZE,
                      })
-    mandala = Mandala()
+    seed = 1
+
+    if len(sys.argv) > 1:
+        try:
+            seed = int(sys.argv[1])
+        except:
+            print('Unknown argument ' + sys.argv[1])
     
-    mandala.lotus(svgDoc = svgOut, parent = svgOut.root, radius = 1, numLobes = 25, numRings = 1000, maxSize = 500, minDistance = 0.5)
+    mandala = Mandala(seed = seed)
     
+    mandala.lotus(svgDoc      = svgOut, 
+                  parent      = svgOut.root, 
+                  radius      = 1, 
+                  numLobes    = 13, 
+                  numRings    = 1000, 
+                  maxSize     = 500, 
+                  minDistance = 0.5,
+                  attr        = {"stroke"       : "none",
+                                 "stroke-width" : 0.0,
+                                 "fill"         : "None",
+                                 "transform"    : "rotate(15, 500, 500)"
+                                })    
     #print(ET.dump(svgOut.root))
     
     svgOut.display()
