@@ -1027,7 +1027,7 @@ LeafShape = {
                "reniform"     : "kidney-shaped"
               }
 
-LeafEdge = {
+LeafMargin = {
             "ciliate"        : "with fine hairs",
             "crenate"        : "rounded teeth",
             "dentate"        : "with symmetrical teeth",
@@ -1070,8 +1070,214 @@ class LeafShape(Enum):
     pinnatisect  = 24
     elliptic     = 25
     reniform     = 26
-    
-class LeafEdge(Enum):
+
+class LeafShapeData:
+    def getData(self):
+        shapeData = {
+                     "stem"   : {
+                                 "angle" : 90.0,       "radius" : 0.3
+                                },
+                     "rib|00" : {
+                                 "angleA" : 90.0,      "radiusA" : 0.5,
+                                 "angleB" : 180.0,     "radiusB" : 0.3,
+                                 "ribPlacement" : 0.33
+                                },
+                     "tip"    : {
+                                 "angle" : 60,          "radius" : 0.3
+                                }
+                    }
+                    
+        if self.leafShape = LeafShape.acicular:
+            shapeData = {
+                         "stem"   : {
+                                     "angle" : 175.0,       "radius" : 0.2
+                                    },
+                         "rib|00" : {
+                                     "angleA" : 90.0,      "radiusA" : 0.125,
+                                     "angleB" : 180.0,     "radiusB" : 0.2,
+                                     "ribPlacement" : 0.33
+                                    },
+                         "tip"    : {
+                                     "angle" : 5,          "radius" : 0.2
+                                    }
+                        }
+        elif self.leafShape = LeafShape.falcate:
+            pass
+        elif self.leafShape = LeafShape.orbicular:
+            shapeData = {
+                         "stem"   : {
+                                     "angle" : 92.0,       "radius" : 0.6
+                                    },
+                         "rib|00" : {
+                                     "angleA" : 90.0,      "radiusA" : 0.5,
+                                     "angleB" : 180.0,     "radiusB" : 0.6,
+                                     "ribPlacement" : 0.5
+                                    },
+                         "tip"    : {
+                                     "angle" : 88,          "radius" : 0.6
+                                    }
+                        }
+            pass
+        elif self.leafShape = LeafShape.rhomboid:  
+            shapeData = {
+                         "stem"   : {
+                                     "angle" : 140.0,       "radius" : 0.6
+                                    },
+                         "rib|00" : {
+                                     "angleA" : 90.0,      "radiusA" : 0.5,
+                                     "angleB" : 180.0,     "radiusB" : 0.0,
+                                     "ribPlacement" : 0.45
+                                    },
+                         "tip"    : {
+                                     "angle" : 30,          "radius" : 0.6
+                                    }
+                        }
+            pass
+        elif self.leafShape = LeafShape.acuminate: 
+            shapeData = {
+                         "stem"   : {
+                                     "angle" : 120.0,       "radius" : 0.1
+                                    },
+                         "rib|00" : {
+                                     "angleA" : 90.0,      "radiusA" : 0.25,
+                                     "angleB" : 180.0,     "radiusB" : 0.28,
+                                     "ribPlacement" : 0.33
+                                    },
+                         "tip"    : {
+                                     "angle" : 5,          "radius" : 0.66
+                                    }
+                        }
+            pass
+        elif self.leafShape = LeafShape.flabelate: 
+            shapeData = {
+                         "stem"   : {
+                                     "angle" : 90.0,       "radius" : 0.6
+                                    },
+                         "rib|00" : {
+                                     "angleA" : 90.0,      "radiusA" : 0.6,
+                                     "angleB" : 180.0,     "radiusB" : 0.1,
+                                     "ribPlacement" : 0.1
+                                    },
+                         "tip"    : {
+                                     "angle" : 90,          "radius" : 0.4
+                                    }
+                        }
+            pass
+        elif self.leafShape = LeafShape.ovate: 
+            shapeData = {
+                         "stem"   : {
+                                     "angle" : 140.0,       "radius" : 0.6
+                                    },
+                         "rib|00" : {
+                                     "angleA" : 90.0,      "radiusA" : 0.5,
+                                     "angleB" : 180.0,     "radiusB" : 0.2,
+                                     "ribPlacement" : 0.4
+                                    },
+                         "tip"    : {
+                                     "angle" : 30,          "radius" : 0.1
+                                    }
+                        }
+            pass
+        elif self.leafShape = LeafShape.hastate:
+            shapeData = {
+                         "stem"   : {
+                                     "angle" : 90.0,       "radius" : 0.6
+                                    },
+                         "rib|00" : {
+                                     "angleA" : 90.0,      "radiusA" : 0.3,
+                                     "angleB" : 180.0,     "radiusB" : 0.25,
+                                     "ribPlacement" : 0.5
+                                    },
+                         "tip"    : {
+                                     "angle" : 15,          "radius" : 0.25
+                                    }
+                        }
+            pass
+        elif self.leafShape = LeafShape.palmate:
+            shapeData = {
+                         "stem"   : {
+                                     "angle" : 88.0,       "radius"  : 0.25
+                                    },
+                         "rib|00" : {
+                                     "angleA" : 90.0,      "radiusA" : 0.35,
+                                     "angleB" : 180.0,     "radiusB" : 0.1,
+                                     "ribPlacement" : 0.2
+                                    },
+                         "rib|01" : {
+                                     "angleA" : 90.0,      "radiusA" : 0.15,
+                                     "angleB" : 180.0,     "radiusB" : 0.1,
+                                     "ribPlacement" : 0.2
+                                    },
+                         "rib|02" : {
+                                     "angleA" : 90.0,      "radiusA" : 0.35,
+                                     "angleB" : 180.0,     "radiusB" : 0.1,
+                                     "ribPlacement" : 0.6
+                                    },
+                         "rib|03" : {
+                                     "angleA" : 90.0,      "radiusA" : 0.15,
+                                     "angleB" : 180.0,     "radiusB" : 0.1,
+                                     "ribPlacement" : 0.6
+                                    },
+                         "tip"    : {
+                                     "angle" : 15,          "radius" : 0.4
+                                    }
+                        }
+            pass
+        elif self.leafShape = LeafShape.spatulate:
+            pass
+        elif self.leafShape = LeafShape.aristate:     
+            pass
+        elif self.leafShape = LeafShape.lanceolate:   
+            pass
+        elif self.leafShape = LeafShape.pedate:
+            pass
+        elif self.leafShape = LeafShape.spear_shaped:
+            pass
+        elif self.leafShape = LeafShape.linear:
+            pass
+        elif self.leafShape = LeafShape.peltate:      
+            pass
+        elif self.leafShape = LeafShape.subulate:     
+            pass
+        elif self.leafShape = LeafShape.cordate: 
+            shapeData = {
+                         "stem"   : {
+                                     "angle" : 90.0, "radius", 0.3
+                                    },
+                         "rib|00" : {
+                                     "angleA" : 90.0, "radiusA", 0.5,
+                                     "angleB" : 180.0, "radiusB", 0.3,
+                                     "ribPlacement" : 0.33
+                                    },
+                         "tip"    : {
+                                     "angle" : 60, "radius" 0.3
+                                    }
+                        }        
+            pass
+        elif self.leafShape = LeafShape.lobed:        
+            pass
+        elif self.leafShape = LeafShape.deltoid:     
+            pass
+        elif self.leafShape = LeafShape.obovate:     
+            pass
+        elif self.leafShape = LeafShape.truncate:    
+            pass
+        elif self.leafShape = LeafShape.digitate:    
+            pass
+        elif self.leafShape = LeafShape.obtuse:       
+            pass
+        elif self.leafShape = LeafShape.pinnatisect:
+            pass
+        elif self.leafShape = LeafShape.elliptic:
+            pass
+        elif self.leafShape = LeafShape.reniform:     
+            pass
+
+        
+    def __init__ (self, )
+        self.shapeData = shapeData
+
+class LeafMargin(Enum):
     ciliate        = 0
     crenate        = 1
     dentate        = 2
@@ -1086,16 +1292,18 @@ class LeafEdge(Enum):
     undulate       = 11
 
 class Leaf:
-    def __init__(self, leafShape = LeafShape.lanceolate, leafEdge  = LeafEdge.entire):
+    def __init__(self, leafShape = LeafShape.lanceolate, leafMargin = LeafMargin.entire):
         assert isinstance(leafShape, LeafShape), "leafShape not instance of LeafShape"
-        assert isinstance(leafEdge, LeafEdge), "leafEdge not instance of LeafEdge"
+        assert isinstance(leafMargin, LeafMargin), "leafMargin not instance of LeafMargin"
         
         self.leafShape = leafShape
-        self.leafEdge  = leafEdge
+        self.leafMargin  = leafMargin
         
     def make(self, spine = Line()):
         assert spine.length != 0.0, "leaf spine is 0 length" 
-            
+        
+        
+        
 MANDALA_CANVAS_SIZE = 1000
 class Mandala:
     def __init__(self, seed = 888):
@@ -1209,7 +1417,7 @@ class Mandala:
                                                        "opacity" : 0.5
                                                       })
 
-    def lotus(self, svgDoc, parent, radius, numLobes, numRings, maxSize, minDistance, attr = {
+    def lotus(self, colourOn, svgDoc, parent, radius, numLobes, numRings, maxSize, minDistance, attr = {
                                                                                               "stroke" : "black",
                                                                                               "stroke-width" : 0.25,
                                                                                               "fill" : "none"                                                                                                
@@ -1273,7 +1481,8 @@ class Mandala:
                 #colour
                 colour = self.palette.getCol()
                 
-                attr["fill"] = colour.hex()
+                if colourOn:
+                    attr["fill"] = colour.hex()
                 
                 path.tag(mainGroup, attr)
 
@@ -1286,12 +1495,12 @@ TEST_FILE = r'SVGWrapTest.html'
 TEST_CIRCLE          = False
 TEST_PATH            = False
 TEST_DNA             = False
-TEST_MANDALA_CIRCLES = False
+TEST_MANDALA_CIRCLES = True
 TEST_COLOUR          = False
 TEST_PALETTE         = False
 TEST_LOAD_GROUP      = False
 TEST_TRANSFORM2D     = False
-TEST_MANDALA_LOTUS   = True
+TEST_MANDALA_LOTUS   = False
 
 def openTestFile():
     check_output("start " + TEST_FILE, shell=True)
@@ -1487,7 +1696,7 @@ def MandalaCirclesTest():
                               "fill" : "black"
                               })
     """
-    mandala.circles(colourOn = False, svgDoc = svgOut, parent = svgOut.root)
+    mandala.circles(colourOn = True, svgDoc = svgOut, parent = svgOut.root)
     
     print(ET.dump(svgOut.root))
     
@@ -1512,15 +1721,16 @@ def MandalaLotusTest():
     
     mandala = Mandala(seed = seed)
     
-    mandala.lotus(svgDoc      = svgOut, 
+    mandala.lotus(colourOn    = True,
+                  svgDoc      = svgOut, 
                   parent      = svgOut.root, 
                   radius      = 1, 
-                  numLobes    = 13, 
+                  numLobes    = 21, 
                   numRings    = 1000, 
                   maxSize     = 500, 
                   minDistance = 0.5,
-                  attr        = {"stroke"       : "none",
-                                 "stroke-width" : 0.0,
+                  attr        = {"stroke"       : "black",
+                                 "stroke-width" : 1.0,
                                  "fill"         : "None",
                                  "transform"    : "rotate(15, 500, 500)"
                                 })    
