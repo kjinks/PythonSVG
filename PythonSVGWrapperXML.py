@@ -201,18 +201,93 @@ class Line:
         
         self.p2 = newP2
         return self.p2
-    
+        
     def length(self):
         xd = p1.x - p2.x
         yd = p1.y - p2.y
         
         length = math.sqrt( math.pow(xd, 2.0) + math.pow(yd, 2.0) )
         
-        return length
+        return length   
     
+    def midpoint(self):
+        return Point((p1.x + p2.x) / 2.0, (p1.y + p2.y) / 2.0)
+        
+    def getPolar(self):
+        magnitude = self.length()
+        
+        xd = p1.x - p2.x
+        yd = p1.y - p2.y
+        
+        angle = math.atan(yd / xd)
+        
+        polar = {
+                 "angle"     : angle,
+                 "magnitude" : magnitude
+                }
+                
+        return polar
+
     def __str__(self):
         s = str(self.p1) + " " + str(self.p2)
 
+class Spline:
+    """
+    def cubicBezier(t)
+    
+    This method calculates a point on a bezier curve 
+    using the formulae from:
+    
+    Coding Math: Episode 19 - Bezier Curves 
+    https://www.youtube.com/watch?v=dXECQRlmIaE
+    Published on Mar 24, 2014
+    
+    A deep dive into Bezier Curves.
+    
+    """
+    def cubicBezier(self, t):
+        pFinal = Point()
+        
+        p0 = self.v1.p1
+        p1 = self.v1.p2
+        p2 = self.v2.p1
+        p3 = self.v2.p2
+        
+        p.x = math.pow(1 - t, 3) * p0.x + 
+              math.pow(1 - t, 2) * 3 * t * p1.x +
+              (1 - t) * 3 * t * t * p2.x +
+              t * t * t * p3.x;
+              
+        p.y = math.pow(1 - t, 3) * p0.y + 
+              math.pow(1 - t, 2) * 3 * t * p1.y +
+              (1 - t) * 3 * t * t * p2.y +
+              t * t * t * p3.y;
+        
+        return pFinal
+    
+    """
+    def calcSpline(steps)
+    """
+    def calcSpline(self, steps):
+        
+        self.updated = True
+        stepSize = 1.0 / (steps + 1)
+        
+        spline = []
+        
+        for s in range(int(steps)):
+            spline.append(self.cubicBezier(s * stepSize)
+        
+        self.steps  = int(steps)
+        self.spline = spline
+        
+    def __init__(self, v1 = Line(),  v2 = Line()):
+        self.v1 = v1
+        self.v2 = v2
+        
+        self.calcSpline(10)
+        
+        self.updated = True
 """
 class DNA
 
@@ -271,7 +346,17 @@ class DNA:
     
     def getIndex(self):
         return self.index
-    
+ 
+"""
+class Colour:
+
+The red (r), green (g), blue (b), channels are
+all in the range (0.0 - 1.0)
+
+The hex output is in format #000000
+
+hls, hsv, yiq calculations come from colorsys.py
+""" 
 class Colour:
     def __init__(self, r = 0.0, b = 0.0, g = 0.0):
         self.r = r
@@ -1224,6 +1309,19 @@ class LeafShapeData:
                         }
             pass
         elif self.leafShape = LeafShape.spatulate:
+            shapeData = {
+                         "stem"   : {
+                                     "angle" : 175.0,       "radius" : 0.6
+                                    },
+                         "rib|00" : {
+                                     "angleA" : 90.0,      "radiusA" : 0.3,
+                                     "angleB" : 180.0,     "radiusB" : 0.1,
+                                     "ribPlacement" : 0.8
+                                    },
+                         "tip"    : {
+                                     "angle" : 90,          "radius" : 0.1
+                                    }
+                        }
             pass
         elif self.leafShape = LeafShape.aristate:     
             pass
@@ -1242,15 +1340,15 @@ class LeafShapeData:
         elif self.leafShape = LeafShape.cordate: 
             shapeData = {
                          "stem"   : {
-                                     "angle" : 90.0, "radius", 0.3
+                                     "angle" : 90.0, "radius" : 0.3
                                     },
                          "rib|00" : {
-                                     "angleA" : 90.0, "radiusA", 0.5,
-                                     "angleB" : 180.0, "radiusB", 0.3,
+                                     "angleA" : 90.0, "radiusA" : 0.5,
+                                     "angleB" : 180.0, "radiusB" : 0.3,
                                      "ribPlacement" : 0.33
                                     },
                          "tip"    : {
-                                     "angle" : 60, "radius" 0.3
+                                     "angle" : 60, "radius" :  0.3
                                     }
                         }        
             pass
@@ -1272,10 +1370,11 @@ class LeafShapeData:
             pass
         elif self.leafShape = LeafShape.reniform:     
             pass
-
-        
-    def __init__ (self, )
-        self.shapeData = shapeData
+   
+    def __init__ (self, leafShape)
+    
+        self.leafShape = leafShape
+        self.shapeData = self.getData()
 
 class LeafMargin(Enum):
     ciliate        = 0
