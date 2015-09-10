@@ -188,13 +188,24 @@ class Point:
     def __str__(self):
         s = "{0:.3f}".format(self.x) + "," + "{0:.3f}".format(self.y)
         return s
-     
+
+class BoundBox:
+    def __init__(self, p1 = Point(), p2 = Point()):
+        self.p1 = p1
+        self.p2 = p2
+        
+    def isIntersect(self, boundBox):
+        assert (isinstance(boundBox, BoundBox)), "boundBox not instance of BoundBox"
+       
+        
+        
+        
 class Line:
-    def __init__(self, p1=Point(), p2=Point()):
+    def __init__(self, p1 = Point(), p2 = Point()):
         self.p1 = p1
         self.p2 = p2
     
-    def polar(self, angle=0, radius=0):
+    def setPolar(self, angle = 0, radius = 0):
         newP2   = Point()
         newP2.x = (math.cos(angle) * radius) + self.p1.x
         newP2.y = (math.sin(angle) * radius) + self.p1.x
@@ -227,7 +238,27 @@ class Line:
                 }
                 
         return polar
-
+    
+    def isParallel(self, line):
+        assert (isinstance(line, Line)), "line not instance of Line"
+        
+        dx1 = self.p1.x - self.p2.x
+        dy1 = self.p1.y - self.p2.y
+        dx2 = line.p1.x - line.p2.x
+        dy2 = line.p1.x - line.p2.y
+    
+        d = dx1 / dy2 - dx2 / dy1
+        
+        return d == 0.0
+        
+    def findIntersect(self, line):
+        assert (isinstance(line, Line)), "line not instance of Line"
+        
+        result = None
+        
+        if not self.isParallel(line):
+            pass
+    
     def __str__(self):
         s = str(self.p1) + " " + str(self.p2)
 
@@ -253,15 +284,9 @@ class Spline:
         p2 = self.v2.p1
         p3 = self.v2.p2
         
-        p.x = math.pow(1 - t, 3) * p0.x + 
-              math.pow(1 - t, 2) * 3 * t * p1.x +
-              (1 - t) * 3 * t * t * p2.x +
-              t * t * t * p3.x;
+        pFinal.x = math.pow(1 - t, 3) * p0.x + math.pow(1 - t, 2) * 3 * t * p1.x + (1 - t) * 3 * t * t * p2.x + t * t * t * p3.x;
               
-        p.y = math.pow(1 - t, 3) * p0.y + 
-              math.pow(1 - t, 2) * 3 * t * p1.y +
-              (1 - t) * 3 * t * t * p2.y +
-              t * t * t * p3.y;
+        pFinal.y = math.pow(1 - t, 3) * p0.y + math.pow(1 - t, 2) * 3 * t * p1.y + (1 - t) * 3 * t * t * p2.y + t * t * t * p3.y;
         
         return pFinal
     
@@ -275,11 +300,13 @@ class Spline:
         
         spline = []
         
-        for s in range(int(steps)):
-            spline.append(self.cubicBezier(s * stepSize)
+        for s in range(int(steps + 2)):
+            spline.append(self.cubicBezier(s * stepSize))
         
         self.steps  = int(steps)
         self.spline = spline
+        
+        return spline
         
     def __init__(self, v1 = Line(),  v2 = Line()):
         self.v1 = v1
@@ -1172,7 +1199,7 @@ class LeafShapeData:
                                 }
                     }
                     
-        if self.leafShape = LeafShape.acicular:
+        if self.leafShape == LeafShape.acicular:
             shapeData = {
                          "stem"   : {
                                      "angle" : 175.0,       "radius" : 0.2
@@ -1186,9 +1213,9 @@ class LeafShapeData:
                                      "angle" : 5,          "radius" : 0.2
                                     }
                         }
-        elif self.leafShape = LeafShape.falcate:
+        elif self.leafShape == LeafShape.falcate:
             pass
-        elif self.leafShape = LeafShape.orbicular:
+        elif self.leafShape == LeafShape.orbicular:
             shapeData = {
                          "stem"   : {
                                      "angle" : 92.0,       "radius" : 0.6
@@ -1203,7 +1230,7 @@ class LeafShapeData:
                                     }
                         }
             pass
-        elif self.leafShape = LeafShape.rhomboid:  
+        elif self.leafShape == LeafShape.rhomboid:  
             shapeData = {
                          "stem"   : {
                                      "angle" : 140.0,       "radius" : 0.6
@@ -1218,7 +1245,7 @@ class LeafShapeData:
                                     }
                         }
             pass
-        elif self.leafShape = LeafShape.acuminate: 
+        elif self.leafShape == LeafShape.acuminate: 
             shapeData = {
                          "stem"   : {
                                      "angle" : 120.0,       "radius" : 0.1
@@ -1233,7 +1260,7 @@ class LeafShapeData:
                                     }
                         }
             pass
-        elif self.leafShape = LeafShape.flabelate: 
+        elif self.leafShape == LeafShape.flabelate: 
             shapeData = {
                          "stem"   : {
                                      "angle" : 90.0,       "radius" : 0.6
@@ -1248,7 +1275,7 @@ class LeafShapeData:
                                     }
                         }
             pass
-        elif self.leafShape = LeafShape.ovate: 
+        elif self.leafShape == LeafShape.ovate: 
             shapeData = {
                          "stem"   : {
                                      "angle" : 140.0,       "radius" : 0.6
@@ -1263,7 +1290,7 @@ class LeafShapeData:
                                     }
                         }
             pass
-        elif self.leafShape = LeafShape.hastate:
+        elif self.leafShape == LeafShape.hastate:
             shapeData = {
                          "stem"   : {
                                      "angle" : 90.0,       "radius" : 0.6
@@ -1278,7 +1305,7 @@ class LeafShapeData:
                                     }
                         }
             pass
-        elif self.leafShape = LeafShape.palmate:
+        elif self.leafShape == LeafShape.palmate:
             shapeData = {
                          "stem"   : {
                                      "angle" : 88.0,       "radius"  : 0.25
@@ -1308,7 +1335,7 @@ class LeafShapeData:
                                     }
                         }
             pass
-        elif self.leafShape = LeafShape.spatulate:
+        elif self.leafShape == LeafShape.spatulate:
             shapeData = {
                          "stem"   : {
                                      "angle" : 175.0,       "radius" : 0.6
@@ -1323,21 +1350,21 @@ class LeafShapeData:
                                     }
                         }
             pass
-        elif self.leafShape = LeafShape.aristate:     
+        elif self.leafShape == LeafShape.aristate:     
             pass
-        elif self.leafShape = LeafShape.lanceolate:   
+        elif self.leafShape == LeafShape.lanceolate:   
             pass
-        elif self.leafShape = LeafShape.pedate:
+        elif self.leafShape == LeafShape.pedate:
             pass
-        elif self.leafShape = LeafShape.spear_shaped:
+        elif self.leafShape == LeafShape.spear_shaped:
             pass
-        elif self.leafShape = LeafShape.linear:
+        elif self.leafShape == LeafShape.linear:
             pass
-        elif self.leafShape = LeafShape.peltate:      
+        elif self.leafShape == LeafShape.peltate:      
             pass
-        elif self.leafShape = LeafShape.subulate:     
+        elif self.leafShape == LeafShape.subulate:     
             pass
-        elif self.leafShape = LeafShape.cordate: 
+        elif self.leafShape == LeafShape.cordate: 
             shapeData = {
                          "stem"   : {
                                      "angle" : 90.0, "radius" : 0.3
@@ -1352,26 +1379,26 @@ class LeafShapeData:
                                     }
                         }        
             pass
-        elif self.leafShape = LeafShape.lobed:        
+        elif self.leafShape == LeafShape.lobed:        
             pass
-        elif self.leafShape = LeafShape.deltoid:     
+        elif self.leafShape == LeafShape.deltoid:     
             pass
-        elif self.leafShape = LeafShape.obovate:     
+        elif self.leafShape == LeafShape.obovate:     
             pass
-        elif self.leafShape = LeafShape.truncate:    
+        elif self.leafShape == LeafShape.truncate:    
             pass
-        elif self.leafShape = LeafShape.digitate:    
+        elif self.leafShape == LeafShape.digitate:    
             pass
-        elif self.leafShape = LeafShape.obtuse:       
+        elif self.leafShape == LeafShape.obtuse:       
             pass
-        elif self.leafShape = LeafShape.pinnatisect:
+        elif self.leafShape == LeafShape.pinnatisect:
             pass
-        elif self.leafShape = LeafShape.elliptic:
+        elif self.leafShape == LeafShape.elliptic:
             pass
-        elif self.leafShape = LeafShape.reniform:     
+        elif self.leafShape == LeafShape.reniform:     
             pass
    
-    def __init__ (self, leafShape)
+    def __init__ (self, leafShape):
     
         self.leafShape = leafShape
         self.shapeData = self.getData()
@@ -1594,12 +1621,13 @@ TEST_FILE = r'SVGWrapTest.html'
 TEST_CIRCLE          = False
 TEST_PATH            = False
 TEST_DNA             = False
-TEST_MANDALA_CIRCLES = True
+TEST_MANDALA_CIRCLES = False
 TEST_COLOUR          = False
 TEST_PALETTE         = False
 TEST_LOAD_GROUP      = False
 TEST_TRANSFORM2D     = False
 TEST_MANDALA_LOTUS   = False
+TEST_BEZIER_CURVE    = True
 
 def openTestFile():
     check_output("start " + TEST_FILE, shell=True)
@@ -1978,6 +2006,88 @@ def Transform2DTest():
     svgOut.display()
     print(ET.tostring(svgOut.root))
     return svgOut
+
+BEZIER_CANVAS_SIZE = 1000
+def BezierCurveTest():
+    svgOut = SVGWrap({
+                      "width"  : BEZIER_CANVAS_SIZE,
+                      "height" : BEZIER_CANVAS_SIZE,
+                     })
+                     
+    p1 = Point()
+    c1 = Point()
+    p2 = Point()
+    c2 = Point()
+
+    for b in range(10):
+        p1.x = random.randrange(BEZIER_CANVAS_SIZE)
+        c1.x = random.randrange(BEZIER_CANVAS_SIZE)
+        p2.x = random.randrange(BEZIER_CANVAS_SIZE)
+        c2.x = random.randrange(BEZIER_CANVAS_SIZE)
+        
+        p1.y = random.randrange(BEZIER_CANVAS_SIZE)
+        c1.y = random.randrange(BEZIER_CANVAS_SIZE)
+        p2.y = random.randrange(BEZIER_CANVAS_SIZE)
+        c2.y = random.randrange(BEZIER_CANVAS_SIZE)
+        
+        s = Spline(Line(p1, c1), Line(p2, c2))
+        
+        spline = s.calcSpline(25)
+        
+        svgOut.circle(svgOut.root, {
+                                    "cx" : p1.x,
+                                    "cy" : p1.y,
+                                    "r"  : 10.0,
+                                    "stroke" : "black",
+                                    "fill" : "blue",
+                                    "opacity" : 0.5
+                                   })
+        svgOut.circle(svgOut.root, {
+                                    "cx" : c1.x,
+                                    "cy" : c1.y,
+                                    "r"  : 10.0,
+                                    "stroke" : "black",
+                                    "fill" : "red",
+                                    "opacity" : 0.5
+                                   })
+        svgOut.circle(svgOut.root, {
+                                    "cx" : p2.x,
+                                    "cy" : p2.y,
+                                    "r"  : 10.0,
+                                    "stroke" : "black",
+                                    "fill" : "red",
+                                    "opacity" : 0.5
+                                   })
+        svgOut.circle(svgOut.root, {
+                                    "cx" : c2.x,
+                                    "cy" : c2.y,
+                                    "r"  : 10.0,
+                                    "stroke" : "black",
+                                    "fill" : "blue",
+                                    "opacity" : 0.5
+                                   })
+        svgOut.line(svgOut.root, {
+                                  "x1" : p1.x,
+                                  "y1" : p1.y,
+                                  "x2" : c1.x,
+                                  "y2" : c1.y,
+                                  "stroke" : "grey"
+                                 })
+        svgOut.line(svgOut.root, {
+                                  "x1" : p2.x,
+                                  "y1" : p2.y,
+                                  "x2" : c2.x,
+                                  "y2" : c2.y,
+                                  "stroke" : "grey"
+                                 })
+        svgOut.polyline(svgOut.root, {
+                                      "stroke" : "black", 
+                                      "stroke-width" : 2.0,
+                                      "fill" : "none"
+                                     },
+                                     spline)
+    svgOut.display()
+    print(ET.tostring(svgOut.root))
     
 if TEST_CIRCLE:
     SVGWrapTesting.testCircle()
@@ -1997,3 +2107,5 @@ elif TEST_TRANSFORM2D:
     Transform2DTest()
 elif TEST_MANDALA_LOTUS:
     MandalaLotusTest()
+elif TEST_BEZIER_CURVE:
+    BezierCurveTest()
