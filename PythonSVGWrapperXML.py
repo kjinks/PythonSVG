@@ -179,6 +179,27 @@ class transform2D:
                  
         self.matrix = multi(self.matrix, matrix)
         return self.matrix
+        
+    def point(self, point):
+        assert (isinstance(point, Point())), "point not a point"
+        
+        pMatrix = [
+                    [point.x],
+                    [point.y],
+                    [0.0]
+                  ]
+                  
+        dMatrix = multi(self.matrix, pMatrix)
+        
+        return Point(dMatrix[0], dMatrix[1])
+    
+    def line(self, line)
+        assert (isinstance(line, Line())), "line not a Line"
+        
+        p1 = self.point(line.p1)
+        p2 = self.point(line.p2)
+        
+        return Line(p1, p2)
     
 class Point:
     def __init__(self, x=0, y=0):
@@ -315,6 +336,15 @@ class Spline:
         self.calcSpline(10)
         
         self.updated = True
+
+class Circle:
+    def __init__(self, origin = Point(), radius = 0.0):
+        self.origin = origin
+        self.radius = radius
+    
+    def invert(self, point = Point()):
+        #circle invert point to new point
+        pass
 """
 class DNA
 
@@ -1427,8 +1457,90 @@ class Leaf:
         
     def make(self, spine = Line()):
         assert spine.length != 0.0, "leaf spine is 0 length" 
+
+"""
+class IFS
+IFS - iterated function system
+
+https://en.wikipedia.org/wiki/Iterated_function_system
+In mathematics, iterated function systems or IFSs are 
+a method of constructing fractals; the resulting constructions 
+are always self-similar. IFS fractals, as they are normally 
+called, can be of any number of dimensions, but are commonly 
+computed and drawn in 2D.
+
+this class contains a number of methods of taking a list of
+lines or circles applies the replacement a number of times
+and outputs a new list of lines or circles
+"""        
+class IFS:
+    """
+    def lineToLine(source, rule, depth)
+    
+    this method replaces each line segment in the source with
+    a copy of the lines from the rule transformed to match the
+    source line's rotation, scale and translation
+    
+    https://en.wikipedia.org/wiki/Koch_snowflake
+    
+    source - shape as list of lines to be replaced
+    rule   - shape as list of lines used to replace
+    depth  - depth of recursion
+
+    returns list of lines
+    """
+    def lineToLine(source = [Line()], rule = [Line()], depth = 2):
+        #replace each line in source with a copy of the rule
         
+        lines = []
+
+        for s in source:
+            polar = s.getPolar()   
+            
+            transform = Transform2D()
+            
+            scale    = 1 / polar["magnitude"] 
+            rotation = polar["angle"]
+            trans    = s.p1
+            
+            transform.rotate(rotation)
+            transform.scale(scale, scale)
+            transform.translate(trans.x, trans.y)
+            
+            for r in rule:
+                p1 = Point(transform.point(r.p1))
+                p2 = Point(transform.point(r.p2))
+                
+                l = Line(p1, p2)
+                
+                lines.append(l)
         
+        if depth > 0:
+            lines = IFS.lineToLines(lines, rule, depth - 1)
+
+        return lines
+        
+    def circleAsLines(circle = Circle(), sides = 8, polygram = 0):
+        assert (isinstance(circle, Circle)), "circle is not Circle"
+        assert (isinstance(sides, int)), "side is not int"
+        
+        lines  = []
+        points = []
+        
+        step = (2.0 * math.pi) / sides
+        
+        step += step * polygram
+        
+        for s in range(sides + 1):
+            x = math.cos(s * step) * circle.r
+            y = math.sin(s * step) * circle.r
+            
+            points.append(Point(x, y))
+            
+        for s in range(sides):
+            lines.append(Line(points[s], points[s + 1]))
+            
+        return lines
         
 MANDALA_CANVAS_SIZE = 1000
 class Mandala:
@@ -1440,7 +1552,8 @@ class Mandala:
         degree = (self.dna.next() * math.pi) / 8.0
         variation = [self.dna.next() * 0.05, self.dna.next() / 2.0, 0.0]
         self.palette = Palette(dna = self.dna, col = colour, degree = degree, variation = variation)
-
+        self.harmonic = int((self.dna.next() * 5.0) + 3.0)
+        
     #svgDoc is an instance of SVGWrap and parent is the parent node in the document
     #attr is the attributes for this SVG group
     def circles(self, colourOn, svgDoc, parent, attr = {
@@ -1464,7 +1577,7 @@ class Mandala:
         numRings = int((self.dna.next() * 9.0)  + 3.0)
         
         #all number of circles are integer multiples 3 - 10
-        harmonic = int((self.dna.next() * 5.0) + 3.0)
+        harmonic = self.harmonic
         
         dnaIndex = self.dna.getIndex()
         
@@ -2018,7 +2131,8 @@ def BezierCurveTest():
     c1 = Point()
     p2 = Point()
     c2 = Point()
-
+    
+    #loop for each bezier curve
     for b in range(10):
         p1.x = random.randrange(BEZIER_CANVAS_SIZE)
         c1.x = random.randrange(BEZIER_CANVAS_SIZE)
