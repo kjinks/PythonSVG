@@ -24,6 +24,28 @@ def wrap(mini, x, maxi):
     return (x % dif) + mini
 
 """
+atan2PI(x, y)
+
+returns atan(y/x) in range 0 - 2PI
+"""
+def atan2PI(x, y):
+    at = math.atan2(y, x)
+        
+    xs = math.copysign(1.0, x)
+    ys = math.copysign(1.0, y)
+    
+    if y < 0:
+        at += math.pi
+    
+        if x < 0:
+            at += math.pi
+    
+    if x > 0 and y < 0:
+        at += math.pi
+    
+    return at
+
+"""
 multiply two matrices
 https://www.youtube.com/watch?v=JSZC2vfa47I
 Published on Jul 27, 2012
@@ -64,7 +86,7 @@ by calling the svgOut method.
 
 https://en.wikipedia.org/wiki/File:2D_affine_transformation_matrix.svg
 """
-class transform2D:    
+class Transform2D:    
     def __init__(self):
         self.matrix = [
                        [1, 0, 0],
@@ -76,6 +98,9 @@ class transform2D:
     #push the current matrix onto the stack
     def push(self):
         self.stack.append(self.matrix)
+        
+        print("Pushing " + str(self.matrix))
+        print("Stack size " + str(len(self.stack))) 
     
     #pop the last matrix from the stack 
     def pop(self):
@@ -83,7 +108,10 @@ class transform2D:
             self.matrix = self.stack.pop()
         except:
             print("stack underflow in matrix transform")
-            
+        
+        print("Popped " + str(self.matrix))
+        print("Stack size " + str(len(self.stack)))
+        
     #get the svg matrix transform string
     def svgOut(self):
         a = str(self.matrix[0][0])
@@ -104,7 +132,7 @@ class transform2D:
                   [0, 0, 1]
                  ]
                  
-        self.matrix = multi(self.matrix, matrix)
+        self.matrix = multi(matrix, self.matrix)
         return self.matrix
 
     def scale(self, w, h):
@@ -181,19 +209,19 @@ class transform2D:
         return self.matrix
         
     def point(self, point):
-        assert (isinstance(point, Point())), "point not a point"
+        assert (isinstance(point, Point)), "point not a point"
         
         pMatrix = [
                     [point.x],
                     [point.y],
-                    [0.0]
+                    [1.0]
                   ]
                   
         dMatrix = multi(self.matrix, pMatrix)
         
-        return Point(dMatrix[0], dMatrix[1])
+        return Point(dMatrix[0][0], dMatrix[1][0])
     
-    def line(self, line)
+    def line(self, line):
         assert (isinstance(line, Line())), "line not a Line"
         
         p1 = self.point(line.p1)
@@ -219,8 +247,7 @@ class BoundBox:
         assert (isinstance(boundBox, BoundBox)), "boundBox not instance of BoundBox"
        
         
-        
-        
+                
 class Line:
     def __init__(self, p1 = Point(), p2 = Point()):
         self.p1 = p1
@@ -235,23 +262,25 @@ class Line:
         return self.p2
         
     def length(self):
-        xd = p1.x - p2.x
-        yd = p1.y - p2.y
+        xd = self.p1.x - self.p2.x
+        yd = self.p1.y - self.p2.y
         
         length = math.sqrt( math.pow(xd, 2.0) + math.pow(yd, 2.0) )
-        
+           
         return length   
     
     def midpoint(self):
-        return Point((p1.x + p2.x) / 2.0, (p1.y + p2.y) / 2.0)
+        return Point((self.p1.x + self.p2.x) / 2.0, (self.p1.y + self.p2.y) / 2.0)
         
     def getPolar(self):
         magnitude = self.length()
         
-        xd = p1.x - p2.x
-        yd = p1.y - p2.y
+        xd = self.p2.x - self.p1.x
+        yd = self.p2.y - self.p1.y
+
+        #angle = atan2PI(xd, yd)
         
-        angle = math.atan(yd / xd)
+        angle = math.atan2(yd, xd)
         
         polar = {
                  "angle"     : angle,
@@ -282,6 +311,21 @@ class Line:
     
     def __str__(self):
         s = str(self.p1) + " " + str(self.p2)
+        return s
+        
+    def toPoints(lines):
+        assert (isinstance(lines, list) or isinstance(lines, Line())), "lines contains no Lines"
+        
+        if isinstance(lines, Line):
+            lines = [lines]
+        
+        points = []
+
+        for l in lines:
+                points.append(l.p1)
+                points.append(l.p2)
+            
+        return points
 
 class Spline:
     """
@@ -1493,47 +1537,45 @@ class IFS:
         #replace each line in source with a copy of the rule
         
         lines = []
-
-        for s in source:
+        
+        for s in source: 
             polar = s.getPolar()   
             
-            transform = Transform2D()
+            t1 = Transform2D()
             
-            scale    = 1 / polar["magnitude"] 
+            scale    = polar["magnitude"] 
             rotation = polar["angle"]
-            trans    = s.p1
+            trans    = s.p1 
+
+            t1.scale(scale, scale)
+            t1.rotate(-rotation)
+            t1.translate(trans.x, trans.y)
             
-            transform.rotate(rotation)
-            transform.scale(scale, scale)
-            transform.translate(trans.x, trans.y)
-            
-            for r in rule:
-                p1 = Point(transform.point(r.p1))
-                p2 = Point(transform.point(r.p2))
-                
+            for r in rule:        
+                p1 = t1.point(r.p1)
+                p2 = t1.point(r.p2)
+
                 l = Line(p1, p2)
-                
                 lines.append(l)
-        
-        if depth > 0:
-            lines = IFS.lineToLines(lines, rule, depth - 1)
+
+        print("Lines created:" + str(len(lines)))
+        if depth > 0:   
+            lines = IFS.lineToLine(lines, rule, depth - 1)
 
         return lines
         
-    def circleAsLines(circle = Circle(), sides = 8, polygram = 0):
+    def circleToLines(circle = Circle(), sides = 8, phase = 0.0, polygram = 1):
         assert (isinstance(circle, Circle)), "circle is not Circle"
         assert (isinstance(sides, int)), "side is not int"
         
         lines  = []
         points = []
         
-        step = (2.0 * math.pi) / sides
-        
-        step += step * polygram
+        step = ((2.0 * math.pi) / sides) * polygram
         
         for s in range(sides + 1):
-            x = math.cos(s * step) * circle.r
-            y = math.sin(s * step) * circle.r
+            x = math.cos(s * step + phase) * circle.radius + circle.origin.x
+            y = math.sin(s * step + phase) * circle.radius + circle.origin.y
             
             points.append(Point(x, y))
             
@@ -1731,16 +1773,23 @@ Testing
 """              
 TEST_FILE = r'SVGWrapTest.html'
 
-TEST_CIRCLE          = False
-TEST_PATH            = False
-TEST_DNA             = False
-TEST_MANDALA_CIRCLES = False
-TEST_COLOUR          = False
-TEST_PALETTE         = False
-TEST_LOAD_GROUP      = False
-TEST_TRANSFORM2D     = False
-TEST_MANDALA_LOTUS   = False
-TEST_BEZIER_CURVE    = True
+TEST_CIRCLE                     = False
+TEST_PATH                       = False
+TEST_DNA                        = False
+TEST_MANDALA_CIRCLES            = False
+TEST_COLOUR                     = False
+TEST_PALETTE                    = False
+TEST_LOAD_GROUP                 = False
+TEST_TRANSFORM2D                = False
+TEST_TRANSFORM2D_POINT          = False
+TEST_MANDALA_LOTUS              = False
+TEST_BEZIER_CURVE               = False
+TEST_IFS_LINE2LINE_SNOWFLAKE    = False
+TEST_IFS_LINE2LINE_DRAGON       = False
+TEST_IFS_LINE2LINE_LEVY_DRAGON  = True
+TEST_LINE_POLAR                 = False
+TEST_ARCTAN                     = False
+TEST_IFS_CIRCLE2LINES           = False
 
 def openTestFile():
     check_output("start " + TEST_FILE, shell=True)
@@ -1905,7 +1954,29 @@ class SVGWrapTesting:
         svgOut.tree.write(TEST_FILE)
         
         return svgOut
+
+def LinePolarTest():
+    line = Line()
     
+    angleStep = math.pi / 5.0
+    
+    for r in range(10):
+        angle = angleStep * r
+        line.setPolar(angle, 10.0)
+    
+        print("Line set at " + str(angle) +  ", radius 10")
+        print("Degrees : " + str(math.degrees(angle)))
+        print("Sin(angle) : " + str(math.sin(angle)))
+        print("Cos(angle) : " + str(math.cos(angle)))
+        
+        polar = line.getPolar()
+    
+        print("Polar received with " + str(polar))
+        print("Degrees : " + str(math.degrees(polar["angle"])))
+        print("Sin(angle) : " + str(math.sin(polar["angle"])))
+        print("Cos(angle) : " + str(math.cos(polar["angle"])))
+        print("\n")
+        
 def DNATesting():
     
     dna = DNA(seed = 111)
@@ -2079,17 +2150,19 @@ def LoadGroupTest():
     
     return svgOut
 
+TRANS_WIDTH = 1000
+
 def Transform2DTest():
     ROTATIONS = 18
     
-    svgOut = SVGWrap({ "width"  : GROUP_WIDTH,
-                       "height" : GROUP_WIDTH 
+    svgOut = SVGWrap({ "width"  : TRANS_WIDTH,
+                       "height" : TRANS_WIDTH 
                      })
                      
     svgOut.rect(svgOut.root, {"x" : 0.0,
                               "y" : 0.0,
-                              "width" : GROUP_WIDTH,
-                              "height" : GROUP_WIDTH,    
+                              "width" : TRANS_WIDTH,
+                              "height" : TRANS_WIDTH,    
                                "fill" : "red"})
                                
     g = svgOut.loadGroup(GROUP_FILE, GROUP_NAME)
@@ -2112,10 +2185,119 @@ def Transform2DTest():
                                        "y" : 0.0
                                       })
         #trans.scale(2.0, 2.0)
-        trans.translate((GROUP_WIDTH / 2.0), (GROUP_WIDTH / 2.0))
+        trans.translate((TRANS_WIDTH / 2.0), (TRANS_WIDTH / 2.0))
         trans.rotate(rot)    
-        trans.translate(-(GROUP_WIDTH / 2.0), -(GROUP_WIDTH / 2.0))    
+        trans.translate(-(TRANS_WIDTH / 2.0), -(TRANS_WIDTH / 2.0))    
     
+    svgOut.display()
+    print(ET.tostring(svgOut.root))
+    return svgOut
+
+def Transform2DPointTest():
+    svgOut = SVGWrap({ "width"  : TRANS_WIDTH,
+                       "height" : TRANS_WIDTH 
+                     })
+    
+    origin = Point(TRANS_WIDTH / 2.0, TRANS_WIDTH / 2.0)
+    
+    point = Point(TRANS_WIDTH / 2.0, 0.0)
+    
+    trans = Transform2D()
+    
+    #display original in black
+    svgOut.line(svgOut.root, {
+                              "x1"           : origin.x,
+                              "y1"           : origin.y,
+                              "x2"           : point.x + origin.x,
+                              "y2"           : point.y + origin.y,
+                              "stroke"       : "black",
+                              "stroke-width" : 5.0
+                             })
+    svgOut.circle(svgOut.root, {
+                                    "cx"     : point.x + origin.x,
+                                    "cy"     : point.y + origin.y,
+                                    "r"      : 10.0,
+                                    "stroke" : "None",
+                                    "fill"   : "black"
+                               })
+                               
+    #test rotate with result in red
+    print(trans.svgOut())
+    trans.push()
+    trans.rotate(math.pi / 3.0)
+    point = trans.point(point)
+    
+    
+    
+    svgOut.line(svgOut.root, {
+                              "x1"           : origin.x,
+                              "y1"           : origin.y,
+                              "x2"           : point.x + origin.x,
+                              "y2"           : point.y + origin.y,
+                              "stroke"       : "red",
+                              "stroke-width" : 5.0
+                             })
+    svgOut.circle(svgOut.root, {
+                                    "cx"     : point.x + origin.x,
+                                    "cy"     : point.y + origin.y,
+                                    "r"      : 10.0,
+                                    "stroke" : "None",
+                                    "fill"   : "red"
+                               })   
+    trans.pop()
+    
+    #test scale with result in green
+    point = Point(TRANS_WIDTH / 2.0, 0.0)
+
+    trans.push()
+    trans.scale(0.5, 0.5)
+    point = trans.point(point)
+    
+    
+    svgOut.line(svgOut.root, {
+                              "x1"           : origin.x,
+                              "y1"           : origin.y,
+                              "x2"           : point.x + origin.x,
+                              "y2"           : point.y + origin.y,
+                              "stroke"       : "green",
+                              "stroke-width" : 5.0
+                             })
+    svgOut.circle(svgOut.root, {
+                                    "cx"     : point.x + origin.x,
+                                    "cy"     : point.y + origin.y,
+                                    "r"      : 10.0,
+                                    "stroke" : "None",
+                                    "fill"   : "green"
+                               })   
+    
+    trans.pop()
+    
+    #test translate with result in blue
+    point = Point(TRANS_WIDTH / 2.0, 0.0)
+
+    trans.push()
+    trans.translate(-100.0, 100.0)
+    print("Translate : " + trans.svgOut())
+    point = trans.point(point)
+
+    svgOut.line(svgOut.root, {
+                              "x1"           : origin.x,
+                              "y1"           : origin.y,
+                              "x2"           : point.x + origin.x,
+                              "y2"           : point.y + origin.y,
+                              "stroke"       : "blue",
+                              "stroke-width" : 5.0
+                             })
+                             
+    svgOut.circle(svgOut.root, {
+                                    "cx"     : point.x + origin.x,
+                                    "cy"     : point.y + origin.y,
+                                    "r"      : 10.0,
+                                    "stroke" : "None",
+                                    "fill"   : "blue"
+                               })                              
+    
+    trans.pop()
     svgOut.display()
     print(ET.tostring(svgOut.root))
     return svgOut
@@ -2202,7 +2384,235 @@ def BezierCurveTest():
                                      spline)
     svgOut.display()
     print(ET.tostring(svgOut.root))
+
+IFS_CANVAS_SIZE = 1000
+def IFSLine2LineTest_Koch_SnowFlake():
+    """
+    triangle
+      a
+      |\c
+      |/
+      b
+    """
+    a = Point(300.0, 846.41)
+    b = Point(300.0, 153.59)
+    c = Point(900.0, 500.0)
     
+    triangle = [Line(b, a), Line(a, c), Line(c, b)]
+    
+    """
+    tent
+       f
+     _/\_
+    d eg h
+    """
+    d = Point(0.0, 0.0)
+    e = Point(0.3333, 0.0)
+    f = Point(0.5, 0.2887)
+    g = Point(0.6667, 0.0)
+    h = Point(1.0, 0.0)
+    
+    tent = [Line(d, e), Line(e, f), Line(f, g), Line(g, h)]
+    #tent = [Line(Point(0.0, 0.0), Point(1.0, 0.0))]
+    
+    snowflake = IFS.lineToLine(triangle, tent, 5)
+    
+    svgOut = SVGWrap({
+                      "width"  : IFS_CANVAS_SIZE,
+                      "height" : IFS_CANVAS_SIZE,
+                     })
+
+    svgOut.polyline(svgOut.root, {
+                                  "stroke" : "black", 
+                                  "stroke-width" : 0.5,
+                                  "fill" : "blue"
+                                 },
+                                 Line.toPoints(snowflake))
+    svgOut.display()
+    print(ET.tostring(svgOut.root))
+
+def IFSLine2LineTest_LevyDragon():
+
+    a = Point(250.0, 500.0)
+    b = Point(750.0, 500.0)
+        
+    start = [Line(a, b)]
+    
+    """
+    fold
+      e
+    d/\f
+    
+    """
+    d = Point(0.0, 0.0)
+    e = Point(0.5, -0.5)
+    f = Point(1.0, 0.0)
+    
+    fold = [Line(d, e), Line(e, f)]
+
+    dragon = IFS.lineToLine(start, fold, 14)
+    
+    svgOut = SVGWrap({
+                      "width"  : IFS_CANVAS_SIZE,
+                      "height" : IFS_CANVAS_SIZE,
+                     })
+    """
+    svgOut.polyline(svgOut.root, {
+                                  "stroke" : "black", 
+                                  "stroke-width" : 0.5,
+                                  "fill" : "none"
+                                 },
+                                Line.toPoints(dragon))
+    """
+    for l in dragon:
+        svgOut.line(svgOut.root, {
+                                  "x1" : l.p1.x,
+                                  "y1" : l.p1.y,
+                                  "x2" : l.p2.x,
+                                  "y2" : l.p2.y,
+                                  "stroke" : "black", 
+                                  "stroke-width" : 0.5,
+                                  "fill" : "none"
+                                 })
+    svgOut.display()
+
+def IFSLine2LineTest_Dragon():
+
+    a = Point(250.0, 500.0)
+    b = Point(750.0, 500.0)
+        
+    start = [Line(a, b)]
+    
+    """
+    fold
+      e
+    d/\f
+    
+    """
+    d = Point(0.0, 0.0)
+    e = Point(0.5, -0.5)
+    f = Point(1.0, 0.0)
+    
+    fold = [Line(d, e), Line(f, e)]
+
+    dragon = IFS.lineToLine(start, fold, 13)
+    
+    svgOut = SVGWrap({
+                      "width"  : IFS_CANVAS_SIZE,
+                      "height" : IFS_CANVAS_SIZE,
+                     })
+    """
+    svgOut.polyline(svgOut.root, {
+                                  "stroke" : "black", 
+                                  "stroke-width" : 0.5,
+                                  "fill" : "none"
+                                 },
+                                Line.toPoints(dragon))
+    """
+    for l in dragon:
+        svgOut.line(svgOut.root, {
+                                  "x1" : l.p1.x,
+                                  "y1" : l.p1.y,
+                                  "x2" : l.p2.x,
+                                  "y2" : l.p2.y,
+                                  "stroke" : "black", 
+                                  "stroke-width" : 0.5,
+                                  "fill" : "none"
+                                 })
+    svgOut.display()
+
+
+def IFSCircle2LinesTest():
+    svgOut = SVGWrap({
+                      "width"  : IFS_CANVAS_SIZE,
+                      "height" : IFS_CANVAS_SIZE,
+                     })
+    #circle = Circle(), sides = 8, phase = 0.0, polygram = 1
+    
+    circle1 = Circle(Point(IFS_CANVAS_SIZE / 2.0, IFS_CANVAS_SIZE / 2.0), IFS_CANVAS_SIZE / 2.0)
+    circle2 = Circle(Point(IFS_CANVAS_SIZE / 2.0, IFS_CANVAS_SIZE / 2.0), IFS_CANVAS_SIZE / 4.0)
+    """
+    tent
+       f
+     _/\_
+    d eg h
+    """
+    d = Point(0.0, 0.0)
+    e = Point(0.3333, 0.0)
+    f = Point(0.5, 0.2887)
+    g = Point(0.6667, 0.0)
+    h = Point(1.0, 0.0)
+    
+    """
+    zigzag
+      j
+    i/\  l
+       \/
+       k
+    """
+    i = Point(0.0, 0.0)
+    j = Point(0.25, 0.25)
+    k = Point(0.75, -0.25)
+    l = Point(1.0, 0.0)
+    
+    
+    tent = [Line(d, e), Line(e, f), Line(f, g), Line(g, h)]
+    zigzag = [Line(i, j), Line(j, k), Line(k, l)]
+
+    
+    lines1 = IFS.circleToLines(circle1, sides = 7, phase = 0.0, polygram = 3)
+    
+    lines2 = IFS.circleToLines(circle2, sides = 4, phase = (math.pi * 2.0) / 14.0, polygram = 3)
+    
+    pretty1 = IFS.lineToLine(lines1, tent, 6)
+    
+    pretty2 = IFS.lineToLine(lines2, zigzag, 6)
+    """
+    svgOut.polyline(svgOut.root, {
+                                  "stroke" : "black", 
+                                  "stroke-width" : 1.0,
+                                  "fill" : "none"
+                                 },
+                                 Line.toPoints(pretty1))
+    """
+    svgOut.polyline(svgOut.root, {
+                                  "stroke" : "black", 
+                                  "stroke-width" : 1.0,
+                                  "fill" : "none"
+                                 },
+                                 Line.toPoints(pretty2))
+     
+    svgOut.display()
+    
+def arctanTest():
+    steps = 100
+    
+    angleStep = (math.pi * 2.0) / float(steps)
+    
+    for a in range(steps):
+        angle = a * angleStep
+        x = math.cos(angle)
+        y = math.sin(angle)
+        
+        at = math.atan2(y, x)
+        
+        xs = math.copysign(1.0, x)
+        ys = math.copysign(1.0, y)
+        
+        if y < 0:
+            at += math.pi
+        
+            if x < 0:
+                at += math.pi
+        
+        if x > 0 and y < 0:
+            at += math.pi
+        
+        
+        print(str(angle) + "," + str(at) + "," + str(xs) + "," + str(ys))
+
+
+
 if TEST_CIRCLE:
     SVGWrapTesting.testCircle()
 elif TEST_PATH:
@@ -2219,7 +2629,22 @@ elif TEST_LOAD_GROUP:
     LoadGroupTest()
 elif TEST_TRANSFORM2D:
     Transform2DTest()
+elif TEST_TRANSFORM2D_POINT:
+    Transform2DPointTest()
 elif TEST_MANDALA_LOTUS:
     MandalaLotusTest()
 elif TEST_BEZIER_CURVE:
     BezierCurveTest()
+elif TEST_IFS_LINE2LINE_SNOWFLAKE:
+    IFSLine2LineTest_Koch_SnowFlake()
+elif TEST_IFS_LINE2LINE_LEVY_DRAGON:
+    IFSLine2LineTest_LevyDragon()
+elif TEST_IFS_LINE2LINE_DRAGON:
+    IFSLine2LineTest_Dragon()
+elif TEST_LINE_POLAR:
+    LinePolarTest()
+elif TEST_ARCTAN:
+    arctanTest()
+elif TEST_IFS_CIRCLE2LINES:
+    IFSCircle2LinesTest()
+    
